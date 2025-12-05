@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ticket Reservation System</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --accent: #22c55e;
+      --accent-dark: #16a34a;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --border: #1f2937;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+     background-image: url("cubic.gif");
+      color: var(--text);
+    }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(10px);
+      z-index: 50;
+    }
+    .nav {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+    }
+    .brand-badge {
+      background: #1f2937;
+      color: #a7f3d0;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      border: 1px solid #334155;
+    }
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      transition: 0.2s ease;
+    }
+    .nav-links a:hover { color: var(--text); background: #1f2937; }
+
+    .container {
+      max-width: 1100px;
+      margin: 24px auto;
+      padding: 0 20px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 24px;
+    }
+    @media (max-width: 950px) { .grid { grid-template-columns: 1fr; } }
+
+    .card {
+      background: radial-gradient(1000px 300px at 10% 0%, rgba(34,197,94,0.08), transparent),
+                  linear-gradient(180deg, #0f172a 0%, #0b1227 100%);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+    }
+    .card-header {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .card-body { padding: 16px 18px; }
+
+    .section-title { font-size: 18px; font-weight: 700; }
+    .muted { color: var(--muted); font-size: 13px; }
+
+    /* Events list */
+    .events {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+    @media (max-width: 700px) { .events { grid-template-columns: 1fr; } }
+
+    .event {
+      background: #0c1429;
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .event:hover { transform: translateY(-1px); border-color: #334155; }
+    .chip {
+      display: inline-block;
+      font-size: 12px;
+      color: #a7f3d0;
+      background: #1f2937;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid #334155;
+    }
+    .event-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid #334155;
+      background: #111827;
+      color: var(--text);
+      text-decoration: none;
+      cursor: pointer;
+      transition: 0.2s ease;
+      font-weight: 600;
+    }
+    .btn:hover { background: #162132; }
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #07210f;
+    }
+    .btn-primary:hover { background: var(--accent-dark); }
+    .btn-danger {
+      background: #1f2937;
+      color: #fecaca;
+      border-color: #dc2626;
+    }
+    .btn-danger:hover { background: #7f1d1d; }
+
+    /* Seat map */
+    .screen {
+      background: linear-gradient(90deg, #1f2937, #334155, #1f2937);
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+      color: #93c5fd;
+      margin-bottom: 12px;
+      font-size: 13px;
+    }
+    .legend { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+    .seat {
+      width: 32px; height: 32px;
+      border-radius: 6px;
+      border: 1px solid #334155;
+      background: #0b1428;
+      display: grid; place-items: center;
+      color: #9ca3af;
+      font-size: 12px;
+      cursor: pointer;
+      transition: 0.2s ease;
+      user-select: none;
+    }
+    .seat:hover { border-color: #475569; }
+    .seat.selected { background: #064e3b; color: #a7f3d0; border-color: #10b981; }
+    .seat.booked { background: #3f1d1d; color: #fecaca; border-color: #dc2626; cursor: not-allowed; }
+    .seat.vip { background: #1f2937; border-style: dashed; }
+    .row {
+      display: flex; gap: 8px; align-items: center; margin: 6px 0;
+    }
+    .row-label { width: 18px; text-align: center; color: var(--muted); font-size: 12px; }
+
+    /* Form */
+    .form {
+      display: grid;
+      gap: 10px;
+    }
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+    .label { font-size: 13px; color: var(--muted); }
+    .input, .select {
+      width: 100%; padding: 10px 12px;
+      border-radius: 10px; border: 1px solid #334155;
+      background: #0c1429; color: var(--text);
+      outline: none; transition: 0.2s ease;
+    }
+    .input:focus, .select:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.2); }
+
+    .summary {
+      display: grid; gap: 8px;
+      background: #0c1429; border: 1px solid #334155; border-radius: 10px; padding: 12px;
+    }
+    .divider { height: 1px; background: #1f2937; margin: 6px 0; }
+    .price { font-weight: 700; color: #a7f3d0; }
+
+    footer {
+      margin: 24px 0;
+      color: var(--muted);
+      text-align: center;
+      font-size: 12px;
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: none; place-items: center;
+      z-index: 100;
+    }
+    .modal {
+      width: 95%; max-width: 520px;
+      background: #0c1429; border: 1px solid #334155; border-radius: 14px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.45);
+      overflow: hidden;
+    }
+    .modal-header { padding: 14px 16px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
+    .modal-body { padding: 14px 16px; }
+    .modal-actions { padding: 12px 16px; border-top: 1px solid #334155; display: flex; gap: 10px; justify-content: flex-end; }
+    .show { display: grid; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="nav">
+      <div class="brand">
+        <span>🎟 Ticket Reservation</span>
+        <span class="brand-badge">by Naveen/NITHEESH/MONISH</span>
+      </div>
+      <nav class="nav-links">
+        <a href="#events">Events</a>
+        <a href="#booking">Book</a>
+        <a href="#summary">Summary</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="grid">
+      <!-- Left: Events & Seat Map -->
+      <section class="card" id="events">
+        <div class="card-header">
+          <div>
+            <div class="section-title">Available events</div>
+            <div class="muted">Pick an event to load seats</div>
+          </div>
+          <button id="resetSelection" class="btn btn-danger">Clear selection</button>
+        </div>
+        <div class="card-body">
+          <div class="events" id="eventList"></div>
+          <div class="divider"></div>
+          <div id="seatArea" style="margin-top:12px;">
+            <div class="screen">Stage / Screen</div>
+            <div class="legend">
+              <div class="legend-item"><span class="seat"></span> Available</div>
+              <div class="legend-item"><span class="seat selected"></span> Selected</div>
+              <div class="legend-item"><span class="seat booked"></span> Booked</div>
+              <div class="legend-item"><span class="seat vip"></span> VIP</div>
+            </div>
+            <div id="seatMap"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right: Booking form & Summary -->
+      <section class="card" id="booking">
+        <div class="card-header">
+          <div>
+            <div class="section-title">Book your tickets</div>
+            <div class="muted">Enter details and confirm</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <form id="bookingForm" class="form" autocomplete="off">
+            <div class="field">
+              <label class="label" for="eventSelect">Event</label>
+              <select id="eventSelect" class="select" required></select>
+            </div>
+            <div class="field">
+              <label class="label" for="name">Full name</label>
+              <input id="name" class="input" type="text" placeholder="e.g., Naveen Kumar" required />
+            </div>
+            <div class="field">
+              <label class="label" for="email">Email</label>
+              <input id="email" class="input" type="email" placeholder="you@example.com" required />
+            </div>
+            <div class="field">
+              <label class="label" for="phone">Phone</label>
+              <input id="phone" class="input" type="tel" placeholder="+91 XXXXX XXXXX" required />
+            </div>
+            <div class="summary" id="summary">
+              <div><strong>Selected seats:</strong> <span id="selectedSeatsLabel" class="muted">None</span></div>
+              <div class="divider"></div>
+              <div><strong>Tickets:</strong> <span id="ticketCount">0</span></div>
+              <div><strong>Base price:</strong> ₹<span id="basePrice">0</span></div>
+              <div><strong>Fees & tax:</strong> ₹<span id="fees">0</span></div>
+              <div class="divider"></div>
+              <div class="price">Total: ₹<span id="totalPrice">0</span></div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="margin-top:10px;">Reserve ticket</button>
+          </form>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    © 2025 Ticket Reservation System — Designed by Naveen. All rights reserved.
+  </footer>
+
+  <!-- Confirmation Modal -->
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <strong>Booking confirmation</strong>
+        <button class="btn" id="closeModal">Close</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-actions">
+        <button class="btn" id="downloadTicket">Download ticket</button>
+        <button class="btn btn-primary" id="finishBooking">Finish</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ----- Data -----
+    const events = [
+      {
+        id: 1,
+        name: "Concert — Arijit Singh",
+        date: "2025-12-20",
+        venue: "Chennai Trade Centre",
+        basePrice: 899,
+        rows: 8,
+        cols: 12,
+        vipRows: ["A", "B"],
+        booked: ["A1","A2","B6","C3","E8","H12"]
+      },
+      {
+        id: 2,
+        name: "Movie — Interstellar",
+        date: "2025-12-22",
+        venue: "PVR Skywalk, Chennai",
+        basePrice: 299,
+        rows: 7,
+        cols: 10,
+        vipRows: ["A"],
+        booked: ["A3","D5","F7"]
+      },
+      {
+        id: 3,
+        name: "Tech Conference",
+        date: "2026-01-05",
+        venue: "Anna University Auditorium",
+        basePrice: 499,
+        rows: 10,
+        cols: 10,
+        vipRows: ["A","B","C"],
+        booked: ["B4","B5","C1","J10"]
+      }
+    ];
+
+    // ----- State -----
+    let currentEvent = events[0];
+    let selectedSeats = new Set();
+
+    // ----- Elements -----
+    const eventListEl = document.getElementById("eventList");
+    const eventSelectEl = document.getElementById("eventSelect");
+    const seatMapEl = document.getElementById("seatMap");
+    const selectedSeatsLabel = document.getElementById("selectedSeatsLabel");
+    const ticketCountEl = document.getElementById("ticketCount");
+    const basePriceEl = document.getElementById("basePrice");
+    const feesEl = document.getElementById("fees");
+    const totalPriceEl = document.getElementById("totalPrice");
+    const resetSelectionBtn = document.getElementById("resetSelection");
+
+    const modalBackdrop = document.getElementById("modalBackdrop");
+    const modalBody = document.getElementById("modalBody");
+    const closeModalBtn = document.getElementById("closeModal");
+    const finishBookingBtn = document.getElementById("finishBooking");
+    const downloadTicketBtn = document.getElementById("downloadTicket");
+
+    // ----- Helpers -----
+    const rowLabel = i => String.fromCharCode(65 + i); // 0->A
+    const isBooked = (code) => currentEvent.booked.includes(code);
+    const isVipRow = (row) => (currentEvent.vipRows || []).includes(row);
+    const formatINR = (n) => n.toLocaleString("en-IN");
+
+    function renderEvents() {
+      // Cards
+      eventListEl.innerHTML = "";
+      events.forEach(ev => {
+        const c = document.createElement("div");
+        c.className = "event";
+        c.innerHTML = `
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <strong>${ev.name}</strong>
+            <span class="chip">${ev.date}</span>
+          </div>
+          <div class="muted">${ev.venue}</div>
+          <div class="event-footer">
+            <span class="muted">From ₹${formatINR(ev.basePrice)}</span>
+            <button class="btn btn-primary" data-event="${ev.id}">Select</button>
+          </div>
+        `;
+        eventListEl.appendChild(c);
+      });
+
+      // Select dropdown
+      eventSelectEl.innerHTML = events
+        .map(ev => `<option value="${ev.id}">${ev.name} — ${ev.date}</option>`)
+        .join("");
+
+      eventSelectEl.value = String(currentEvent.id);
+
+      // Bind buttons
+      eventListEl.querySelectorAll("[data-event]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = Number(btn.getAttribute("data-event"));
+          switchEvent(id);
+        });
+      });
+    }
+
+    function switchEvent(id) {
+      currentEvent = events.find(e => e.id === id) || events[0];
+      eventSelectEl.value = String(currentEvent.id);
+      selectedSeats.clear();
+      renderSeatMap();
+      updateSummary();
+    }
+
+    function renderSeatMap() {
+      seatMapEl.innerHTML = "";
+      const { rows, cols } = currentEvent;
+      for (let r = 0; r < rows; r++) {
+        const rowCode = rowLabel(r);
+        const rowDiv = document.createElement("div");
+        rowDiv.className = "row";
+        // label
+        const label = document.createElement("div");
+        label.className = "row-label";
+        label.textContent = rowCode;
+        rowDiv.appendChild(label);
+        // seats
+        for (let c = 1; c <= cols; c++) {
+          const code = `${rowCode}${c}`;
+          const seat = document.createElement("div");
+          seat.className = "seat";
+          if (isVipRow(rowCode)) seat.classList.add("vip");
+          seat.textContent = c;
+          if (isBooked(code)) {
+            seat.classList.add("booked");
+          } else {
+            seat.addEventListener("click", () => toggleSeat(code, seat));
+          }
+          rowDiv.appendChild(seat);
+        }
+        seatMapEl.appendChild(rowDiv);
+      }
+    }
+
+    function toggleSeat(code, el) {
+      if (selectedSeats.has(code)) {
+        selectedSeats.delete(code);
+        el.classList.remove("selected");
+      } else {
+        selectedSeats.add(code);
+        el.classList.add("selected");
+      }
+      updateSummary();
+    }
+
+    function computeTotals() {
+      const count = selectedSeats.size;
+      const base = currentEvent.basePrice;
+      // VIP surcharge: +20% for VIP rows
+      let subtotal = 0;
+      selectedSeats.forEach(code => {
+        const row = code[0];
+        const price = isVipRow(row) ? Math.round(base * 1.2) : base;
+        subtotal += price;
+      });
+      // Convenience fee: ₹20 per ticket; GST: 18% on subtotal + fee
+      const convenience = count * 20;
+      const preTax = subtotal + convenience;
+      const tax = Math.round(preTax * 0.18);
+      const total = preTax + tax;
+      return { count, subtotal, convenience, tax, total };
+    }
+
+    function updateSummary() {
+      const { count, subtotal, convenience, tax, total } = computeTotals();
+      selectedSeatsLabel.textContent = count ? Array.from(selectedSeats).join(", ") : "None";
+      ticketCountEl.textContent = count;
+      basePriceEl.textContent = formatINR(subtotal);
+      feesEl.textContent = formatINR(convenience + tax);
+      totalPriceEl.textContent = formatINR(total);
+    }
+
+    // ----- Events -----
+    eventSelectEl.addEventListener("change", (e) => {
+      switchEvent(Number(e.target.value));
+    });
+
+    resetSelectionBtn.addEventListener("click", () => {
+      selectedSeats.clear();
+      renderSeatMap();
+      updateSummary();
+    });
+
+    document.getElementById("bookingForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = document.getElementById("name").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const phone = document.getElementById("phone").value.trim();
+
+      if (!selectedSeats.size) {
+        alert("Please select at least one seat.");
+        return;
+      }
+
+      const totals = computeTotals();
+      const booking = {
+        id: "BK" + Date.now(),
+        eventId: currentEvent.id,
+        eventName: currentEvent.name,
+        date: currentEvent.date,
+        venue: currentEvent.venue,
+        name, email, phone,
+        seats: Array.from(selectedSeats),
+        priceBreakup: totals,
+        createdAt: new Date().toISOString()
+      };
+
+      // Mark seats as booked for current session
+      currentEvent.booked = Array.from(new Set([...currentEvent.booked, ...booking.seats]));
+      selectedSeats.clear();
+      renderSeatMap();
+      updateSummary();
+
+      // Persist in localStorage (demo)
+      const key = "trs_bookings";
+      const prev = JSON.parse(localStorage.getItem(key) || "[]");
+      localStorage.setItem(key, JSON.stringify([booking, ...prev]));
+
+      // Show confirmation modal
+      showModal(booking);
+      e.target.reset();
+    });
+
+    // ----- Modal -----
+    function showModal(booking) {
+      modalBody.innerHTML = `
+        <div style="display:grid;gap:10px;">
+          <div><strong>Booking ID:</strong> ${booking.id}</div>
+          <div><strong>Event:</strong> ${booking.eventName}</div>
+          <div><strong>Date:</strong> ${booking.date}</div>
+          <div><strong>Venue:</strong> ${booking.venue}</div>
+          <div><strong>Name:</strong> ${booking.name}</div>
+          <div><strong>Seats:</strong> ${booking.seats.join(", ")}</div>
+          <div class="divider"></div>
+          <div><strong>Tickets:</strong> ${booking.priceBreakup.count}</div>
+          <div><strong>Subtotal:</strong> ₹${formatINR(booking.priceBreakup.subtotal)}</div>
+          <div><strong>Fees:</strong> ₹${formatINR(booking.priceBreakup.convenience + booking.priceBreakup.tax)}</div>
+          <div class="price">Total: ₹${formatINR(booking.priceBreakup.total)}</div>
+        </div>
+      `;
+      modalBackdrop.classList.add("show");
+
+      // Prepare download
+      downloadTicketBtn.onclick = () => downloadTextTicket(booking);
+    }
+
+    closeModalBtn.addEventListener("click", () => modalBackdrop.classList.remove("show"));
+    finishBookingBtn.addEventListener("click", () => modalBackdrop.classList.remove("show"));
+
+    function downloadTextTicket(booking) {
+      const content = [
+        "=== Ticket Reservation — Naveen ===",
+        `Booking ID: ${booking.id}`,
+        `Event: ${booking.eventName}`,
+        `Date: ${booking.date}`,
+        `Venue: ${booking.venue}`,
+        `Name: ${booking.name}`,
+        `Email: ${booking.email}`,
+        `Phone: ${booking.phone}`,
+        `Seats: ${booking.seats.join(", ")}`,
+        `Tickets: ${booking.priceBreakup.count}`,
+        `Subtotal: ₹${booking.priceBreakup.subtotal}`,
+        `Fees: ₹${booking.priceBreakup.convenience + booking.priceBreakup.tax}`,
+        `Total: ₹${booking.priceBreakup.total}`,
+        `Created: ${new Date(booking.createdAt).toLocaleString()}`,
+        "",
+        "Note: This is a demo ticket generated client-side."
+      ].join("\n");
+
+      const blob = new Blob([content], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${booking.id}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // ----- Init -----
+    renderEvents();
+    renderSeatMap();
+    updateSummary();
+  </script>
+</body>
+</html>
